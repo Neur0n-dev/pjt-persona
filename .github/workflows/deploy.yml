@@ -30,7 +30,7 @@ jobs:
         run: cd /_pjt/persona && git fetch origin master && git reset --hard origin/master
 
       - name: Install dependencies
-        run: cd /_pjt/persona && npm install --omit=dev
+        run: cd /_pjt/persona && npm install
 
       - name: Generate Prisma client
         run: cd /_pjt/persona && ./node_modules/.bin/prisma generate
