@@ -1,0 +1,42 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '*.md'
+      - 'sql/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'LICENSE'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm install
+      - run: npm run lint
+
+  deploy:
+    needs: lint
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        run: cd /_pjt/persona && git fetch origin master && git reset --hard origin/master
+
+      - name: Install dependencies
+        run: cd /_pjt/persona && npm install --omit=dev
+
+      - name: Generate Prisma client
+        run: cd /_pjt/persona && ./node_modules/.bin/prisma generate
+
+      - name: Build
+        run: cd /_pjt/persona && npm run build
+
+      - name: Reload application
+        run: pm2 reload persona
