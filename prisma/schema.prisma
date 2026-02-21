@@ -7,45 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 페르소나 토론 테이블
 model Debate {
-  debatesUuid   String   @id @default(uuid()) @map("debates_uuid") @db.VarChar(36)
-  debatesTopic  String   @map("debates_topic") @db.VarChar(500)
-  debatesStatus String   @map("debates_status") @db.VarChar(20)
-  createdDate   DateTime @default(now()) @map("created_date") @db.Timestamp(0)
-  updateDate    DateTime @updatedAt @map("update_date") @db.Timestamp(0)
-
+  debatesUuid   String    @id @default(uuid()) @map("debates_uuid") @db.VarChar(36)
+  debatesTopic  String    @map("debates_topic") @db.VarChar(500)
+  debatesStatus     String    @default("ongoing") @map("debates_status") @db.VarChar(20)
+  debatesTotalTurns Int       @default(9) @map("debates_total_turns")
+  createdDate       DateTime  @default(now()) @map("created_date") @db.Timestamp(0)
+  updateDate        DateTime  @default(now()) @updatedAt @map("update_date") @db.Timestamp(0)
   messages      Message[]
   votes         Vote[]
 
   @@map("t_persona_debates")
 }
 
-// 페르소나 토론 메세지 테이블
 model Message {
   messageUuid       String   @id @default(uuid()) @map("message_uuid") @db.VarChar(36)
   debatesUuid       String   @map("debates_uuid") @db.VarChar(36)
   messagePersona    String   @map("message_persona") @db.VarChar(50)
   messageContent    String   @map("message_content") @db.Text
-  messageTurnNumber Int      @map("message_turn_number") @db.Int
+  messageTurnNumber Int      @map("message_turn_number")
   createdDate       DateTime @default(now()) @map("created_date") @db.Timestamp(0)
+  debate            Debate   @relation(fields: [debatesUuid], references: [debatesUuid], onDelete: Cascade, onUpdate: NoAction, map: "fk_message_debate")
 
-  debate            Debate   @relation(fields: [debatesUuid], references: [debatesUuid], onDelete: Cascade)
-
-  @@index([debatesUuid, messageTurnNumber], name: "idx_debate_turn")
+  @@index([debatesUuid, messageTurnNumber], map: "idx_debate_turn")
   @@map("t_persona_message")
 }
 
-// 페르소나 투표 테이블
 model Vote {
-  votesUuid     String   @id @default(uuid()) @map("votes_uuid") @db.VarChar(36)
-  debatesUuid   String   @map("debates_uuid") @db.VarChar(36)
-  votesPersona  String   @map("votes_persona") @db.VarChar(50)
-  votesIp       String   @map("votes_ip") @db.VarChar(50)
-  createdDate   DateTime @default(now()) @map("created_date") @db.Timestamp(0)
+  votesUuid    String   @id @default(uuid()) @map("votes_uuid") @db.VarChar(36)
+  debatesUuid  String   @map("debates_uuid") @db.VarChar(36)
+  votesPersona String   @map("votes_persona") @db.VarChar(50)
+  votesIp      String   @map("votes_ip") @db.VarChar(50)
+  createdDate  DateTime @default(now()) @map("created_date") @db.Timestamp(0)
+  debate       Debate   @relation(fields: [debatesUuid], references: [debatesUuid], onDelete: Cascade, onUpdate: NoAction, map: "fk_vote_debate")
 
-  debate        Debate   @relation(fields: [debatesUuid], references: [debatesUuid], onDelete: Cascade)
-
-  @@unique([debatesUuid, votesIp], name: "unique_debate_voter")
+  @@unique([debatesUuid, votesIp], name: "unique_debate_voter", map: "unique_debate_voter")
   @@map("t_persona_votes")
 }
