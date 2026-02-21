@@ -4,7 +4,7 @@ module.exports = {
       name: 'persona',
       script: 'node_modules/.bin/next',
       args: 'start',
-      cwd: '/var/www/persona',
+      cwd: '/_pjt/persona',
       instances: 1,
       exec_mode: 'fork',
       env: {
