@@ -22,7 +22,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PERSONA_KEYS, type PersonaKey } from '@/lib/personas'
+import { type PersonaKey } from '@/lib/personas'
 
 // requestAnimationFrame으로 텍스트 업데이트를 프레임당 1회로 묶음
 function useRafState<T>(initial: T) {
@@ -66,6 +66,7 @@ export interface DebateState {
   topic: string
   status: string         // 'ongoing' | 'completed'
   totalTurns: number     // 설정된 총 턴 수 (6/9/12)
+  personas: string[]     // 이 토론에 배정된 3명의 PersonaKey 배열 (e.g. ['A', 'D', 'G'])
   currentTurn: number    // 현재까지 완료된 턴 수
   messages: Message[]    // 지금까지의 모든 발언
 }
@@ -98,8 +99,8 @@ export default function useDebate(id: string): UseDebateReturn {
     isRunning.current = true
     abortRef.current = new AbortController()
 
-    // currentTurn % 3 으로 A → B → C 순환 결정
-    const personaKey: PersonaKey = PERSONA_KEYS[currentDebate.currentTurn % 3]
+    // 이 토론에 배정된 3명 중 순환 결정
+    const personaKey: PersonaKey = currentDebate.personas[currentDebate.currentTurn % 3] as PersonaKey
 
     try {
       const res = await fetch(`/api/debate/${id}/next`, {

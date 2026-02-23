@@ -7,11 +7,12 @@
  * 흐름:
  * 1. 요청 body에서 topic(주제)과 totalTurns(턴 수) 꺼냄
  * 2. 유효성 검사 (빈 주제, 잘못된 턴 수)
- * 3. DB에 토론 레코드 생성
- * 4. 생성된 토론 UUID 반환 → 프론트에서 /debate/[id]로 이동
+ * 3. 전체 페르소나 풀에서 랜덤 3명 선택
+ * 4. DB에 토론 레코드 생성 (선택된 페르소나 저장)
+ * 5. 생성된 토론 UUID + 선택된 페르소나 정보 반환 → 프론트에서 입장 알림 표시 후 /debate/[id]로 이동
  */
 import { prisma } from '@/lib/prisma'
-import { PERSONA_KEYS } from '@/lib/personas'
+import { pickRandomPersonas, PERSONAS } from '@/lib/personas'
 
 const VALID_TURNS = [6, 9, 12]
 
@@ -27,15 +28,19 @@ export async function POST(req: Request) {
     return Response.json({ result: false, message: '턴 수는 6, 9, 12 중 하나여야 합니다.' }, { status: 400 })
   }
 
-  // 페르소나 3명은 항상 A → B → C 고정 순서
-  console.log('[debate/start] personas:', PERSONA_KEYS)
+  // 전체 8명 중 랜덤 3명 선택
+  const selectedKeys = pickRandomPersonas()
+  const personasStr = selectedKeys.join(',')
+
+  console.log('[debate/start] selected personas:', selectedKeys)
 
   const debate = await prisma.debate.create({
     data: {
       debatesUuid: crypto.randomUUID(),
       debatesTopic: topic.trim(),
-      debatesStatus: 'ongoing', // 생성 즉시 진행 중 상태
+      debatesStatus: 'ongoing',
       debatesTotalTurns: totalTurns,
+      debatesPersonas: personasStr,
     },
   })
 
@@ -45,6 +50,12 @@ export async function POST(req: Request) {
       debatesUuid: debate.debatesUuid,
       topic: debate.debatesTopic,
       totalTurns: debate.debatesTotalTurns,
+      personas: selectedKeys.map((key) => ({
+        key,
+        name: PERSONAS[key].name,
+        title: PERSONAS[key].title,
+        textColor: PERSONAS[key].textColor,
+      })),
     },
   })
 }

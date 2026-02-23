@@ -46,6 +46,7 @@ export async function GET(
       topic: debate.debatesTopic,
       status: debate.debatesStatus,
       totalTurns: debate.debatesTotalTurns,
+      personas: debate.debatesPersonas.split(','), // ['A', 'D', 'G'] 형태
       currentTurn: debate.messages.length, // 저장된 메시지 수 = 완료된 턴 수
       createdDate: debate.createdDate,
       messages: debate.messages.map((m) => ({

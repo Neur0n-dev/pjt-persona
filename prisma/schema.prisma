@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Debate {
-  debatesUuid   String    @id @default(uuid()) @map("debates_uuid") @db.VarChar(36)
-  debatesTopic  String    @map("debates_topic") @db.VarChar(500)
+  debatesUuid       String    @id @default(uuid()) @map("debates_uuid") @db.VarChar(36)
+  debatesTopic      String    @map("debates_topic") @db.VarChar(500)
   debatesStatus     String    @default("ongoing") @map("debates_status") @db.VarChar(20)
   debatesTotalTurns Int       @default(9) @map("debates_total_turns")
+  debatesPersonas   String    @default("A,B,C") @map("debates_personas") @db.VarChar(150)
   createdDate       DateTime  @default(now()) @map("created_date") @db.Timestamp(0)
   updateDate        DateTime  @default(now()) @updatedAt @map("update_date") @db.Timestamp(0)
   messages      Message[]

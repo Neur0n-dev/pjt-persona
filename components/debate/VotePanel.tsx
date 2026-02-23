@@ -2,35 +2,26 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { PERSONAS, PERSONA_KEYS, type PersonaKey } from '@/lib/personas'
+import { PERSONAS, type PersonaKey } from '@/lib/personas'
 
 interface Props {
   debatesUuid: string
+  personas: string[]  // 이 토론에 참여한 3명의 PersonaKey 배열
 }
 
-const barColor: Record<PersonaKey, string> = {
-  A: 'bg-violet-500',
-  B: 'bg-blue-500',
-  C: 'bg-rose-500',
-}
-
-const hoverBorder: Record<PersonaKey, string> = {
-  A: 'hover:border-violet-500 hover:bg-gray-700',
-  B: 'hover:border-blue-500 hover:bg-gray-700',
-  C: 'hover:border-rose-500 hover:bg-gray-700',
-}
-
-export default function VotePanel({ debatesUuid }: Props) {
+export default function VotePanel({ debatesUuid, personas }: Props) {
   const [myVote, setMyVote] = useState<PersonaKey | null>(null)
-  const [votes, setVotes] = useState<Record<string, number>>({ A: 0, B: 0, C: 0 })
+  const [votes, setVotes] = useState<Record<string, number>>(
+    Object.fromEntries(personas.map((k) => [k, 0]))
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const total = Object.values(votes).reduce((sum, v) => sum + v, 0)
 
-  const maxVotes = Math.max(...PERSONA_KEYS.map((k) => votes[k] ?? 0))
-  const winners: PersonaKey[] = myVote
-    ? PERSONA_KEYS.filter((k) => (votes[k] ?? 0) === maxVotes)
+  const maxVotes = Math.max(...personas.map((k) => votes[k] ?? 0))
+  const winners = myVote
+    ? (personas.filter((k) => (votes[k] ?? 0) === maxVotes) as PersonaKey[])
     : []
   const isTie = winners.length > 1
 
@@ -81,24 +72,24 @@ export default function VotePanel({ debatesUuid }: Props) {
       )}
 
       <div className="flex flex-col gap-3">
-        {PERSONA_KEYS.map((key) => {
-          const p = PERSONAS[key]
+        {personas.map((key) => {
+          const p = PERSONAS[key as PersonaKey]
           const count = votes[key] ?? 0
           const percent = total > 0 ? Math.round((count / total) * 100) : 0
           const isMyVote = myVote === key
-          const isWinner = winners.includes(key)
+          const isWinner = winners.includes(key as PersonaKey)
 
           return (
             <button
               key={key}
-              onClick={() => handleVote(key)}
+              onClick={() => handleVote(key as PersonaKey)}
               disabled={!!myVote || loading}
               className={`flex flex-col gap-1.5 rounded-xl border p-3 text-left transition-colors ${
                 isMyVote || isWinner
                   ? `${p.borderColor} bg-gray-700`
                   : myVote
                   ? 'cursor-default border-gray-600'
-                  : `border-gray-600 ${hoverBorder[key]}`
+                  : `border-gray-600 ${p.hoverBorder}`
               }`}
             >
               <div className="flex items-center justify-between">
@@ -118,7 +109,7 @@ export default function VotePanel({ debatesUuid }: Props) {
                     initial={{ width: 0 }}
                     animate={{ width: `${percent}%` }}
                     transition={{ duration: 0.6, ease: 'easeOut' }}
-                    className={`h-full rounded-full ${barColor[key]}`}
+                    className={`h-full rounded-full ${p.barColor}`}
                   />
                 </div>
               )}

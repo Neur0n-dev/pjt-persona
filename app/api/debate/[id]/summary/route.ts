@@ -48,6 +48,12 @@ export async function GET(
     .map((m) => `${PERSONAS[m.messagePersona as PersonaKey].name}: ${m.messageContent}`)
     .join('\n\n')
 
+  // 이 토론에 참여한 페르소나들의 이름으로 JSON 템플릿 동적 생성
+  const debatePersonaKeys = debate.debatesPersonas.split(',') as PersonaKey[]
+  const jsonTemplate = Object.fromEntries(
+    debatePersonaKeys.map((key) => [PERSONAS[key].name, '...'])
+  )
+
   const prompt = `다음은 "${debate.debatesTopic}" 주제로 진행된 AI 토론이야.
 
 ${historyText}
@@ -55,11 +61,7 @@ ${historyText}
 위 토론에서 각 참여자가 주장한 핵심 내용을 아래 JSON 형식으로 요약해줘.
 각 요약은 2~3문장, 반말로 작성해.
 
-{
-  "자칭 논리왕": "...",
-  "나..안운다": "...",
-  "입만살았음": "..."
-}
+${JSON.stringify(jsonTemplate, null, 2)}
 
 JSON만 출력하고 다른 텍스트는 절대 포함하지 마.`
 

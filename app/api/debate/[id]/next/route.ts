@@ -17,7 +17,7 @@
  * - { type: 'error', message: '...' }  → 에러 발생
  */
 import { prisma } from '@/lib/prisma'
-import { PERSONA_KEYS, buildPrompt, type PersonaKey } from '@/lib/personas'
+import { buildPrompt, type PersonaKey } from '@/lib/personas'
 import { streamGemini } from '@/lib/gemini'
 
 export async function POST(
@@ -53,8 +53,9 @@ export async function POST(
     return Response.json({ result: false, message: '모든 턴이 완료되었습니다.' }, { status: 400 })
   }
 
-  // 턴 수 % 3 으로 A → B → C → A → B → C ... 순환
-  const personaKey: PersonaKey = PERSONA_KEYS[currentTurn % 3]
+  // 이 토론에 배정된 3명 중 턴 % 3 으로 순환
+  const personas = debate.debatesPersonas.split(',') as PersonaKey[]
+  const personaKey: PersonaKey = personas[currentTurn % 3]
   const turnNumber = currentTurn + 1
   const isLastTurn = turnNumber >= debate.debatesTotalTurns
 

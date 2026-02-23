@@ -14,7 +14,7 @@
  * x-forwarded-for (nginx 등 프록시) → x-real-ip → 'unknown'
  */
 import { prisma } from '@/lib/prisma'
-import { PERSONA_KEYS, type PersonaKey } from '@/lib/personas'
+import { ALL_PERSONA_KEYS, type PersonaKey } from '@/lib/personas'
 
 export async function POST(
   req: Request,
@@ -24,8 +24,8 @@ export async function POST(
   const body = await req.json()
   const { persona } = body
 
-  // A, B, C 외 다른 값이 오면 거부
-  if (!PERSONA_KEYS.includes(persona)) {
+  // 유효하지 않은 페르소나 키면 거부
+  if (!ALL_PERSONA_KEYS.includes(persona)) {
     return Response.json({ result: false, message: '유효하지 않은 페르소나입니다.' }, { status: 400 })
   }
 
@@ -67,7 +67,13 @@ export async function POST(
     },
   })
 
-  // 투표 후 A/B/C 각각의 득표 수 집계해서 반환
+  // 이 토론의 참여 페르소나 조회 후 득표 수 집계
+  const debateInfo = await prisma.debate.findUnique({
+    where: { debatesUuid: id },
+    select: { debatesPersonas: true },
+  })
+  const debatePersonaKeys = (debateInfo?.debatesPersonas ?? 'A,B,C').split(',') as PersonaKey[]
+
   const votes = await prisma.vote.groupBy({
     by: ['votesPersona'],
     where: { debatesUuid: id },
@@ -75,7 +81,7 @@ export async function POST(
   })
 
   const result = Object.fromEntries(
-    PERSONA_KEYS.map((key) => [
+    debatePersonaKeys.map((key) => [
       key,
       votes.find((v) => v.votesPersona === key)?._count ?? 0,
     ])

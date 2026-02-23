@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { PERSONA_KEYS } from '@/lib/personas'
+import { type PersonaKey } from '@/lib/personas'
 import PersonaCard from './PersonaCard'
 import ChatBubble from './ChatBubble'
 import SummaryPanel from './SummaryPanel'
@@ -47,10 +47,10 @@ export default function DebateArena({ debate, streamingText, streamingPersona, i
 
       {/* 페르소나 카드 3인 */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {PERSONA_KEYS.map((key) => (
+        {debate.personas.map((key) => (
           <PersonaCard
             key={key}
-            personaKey={key}
+            personaKey={key as PersonaKey}
             isSpeaking={isStreaming && streamingPersona === key}
           />
         ))}
@@ -103,8 +103,8 @@ export default function DebateArena({ debate, streamingText, streamingPersona, i
               </button>
             </div>
           </div>
-          <SummaryPanel debatesUuid={debate.debatesUuid} />
-          <VotePanel debatesUuid={debate.debatesUuid} />
+          <SummaryPanel debatesUuid={debate.debatesUuid} personas={debate.personas} />
+          <VotePanel debatesUuid={debate.debatesUuid} personas={debate.personas} />
         </div>
       )}
     </div>

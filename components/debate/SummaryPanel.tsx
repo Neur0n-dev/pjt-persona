@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { PERSONAS, PERSONA_KEYS, type PersonaKey } from '@/lib/personas'
+import { PERSONAS, type PersonaKey } from '@/lib/personas'
 
 interface Props {
   debatesUuid: string
+  personas: string[]  // 이 토론에 참여한 3명의 PersonaKey 배열
 }
 
-export default function SummaryPanel({ debatesUuid }: Props) {
+export default function SummaryPanel({ debatesUuid, personas }: Props) {
   const [summary, setSummary] = useState<Record<string, string> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -42,8 +43,8 @@ export default function SummaryPanel({ debatesUuid }: Props) {
         <p className="text-sm text-rose-400">요약을 생성하지 못했습니다.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {PERSONA_KEYS.map((key, i) => {
-            const p = PERSONAS[key]
+          {personas.map((key, i) => {
+            const p = PERSONAS[key as PersonaKey]
             const text = summary?.[p.name]
 
             return (
